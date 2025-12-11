@@ -807,7 +807,7 @@ function AdminPanel({
           ))}
           {categories.length === 0 && (
             <div className="table-row">
-              <p colSpan={4} className="muted empty">
+              <p  className="muted empty">
                 No categories yet. Add your first category.
               </p>
             </div>
@@ -915,7 +915,7 @@ function AdminPanel({
         ))}
         {sortedProducts.length === 0 && (
           <div className="table-row">
-            <p colSpan={5} className="muted empty">
+            <p  className="muted empty">
               No products yet. Add your first product.
             </p>
           </div>
