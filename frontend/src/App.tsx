@@ -1,4 +1,5 @@
-import { type FormEvent, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import type { FormEvent } from 'react'
 import { Link, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import BkashVerification from './BkashVerification'
 
@@ -193,7 +194,7 @@ function useCatalog() {
       ])
       
       if (productsRes.success && productsRes.data) {
-        const backendProducts: BackendProduct[] = productsRes.data
+        const backendProducts = productsRes.data
         const convertedProducts: Product[] = backendProducts
           .filter(p => p.isActive)
           .map(p => ({
@@ -216,7 +217,7 @@ function useCatalog() {
       }
       
       if (categoriesRes.success && categoriesRes.data) {
-        const backendCategories: BackendCategory[] = categoriesRes.data
+        const backendCategories = categoriesRes.data
         const convertedCategories: Category[] = backendCategories
           .filter(c => c.isActive)
           .map(c => ({
@@ -785,16 +786,16 @@ function AdminPanel({
 
         <div className="table categories-table">
           <div className="table-head">
-            <p>Category</p>
-            <p>Badge</p>
-            <p>Description</p>
-            <p>Actions</p>
+            <div>Category</div>
+            <div>Badge</div>
+            <div>Description</div>
+            <div>Actions</div>
           </div>
           {categories.map((cat) => (
             <div key={cat.id} className="table-row">
-              <p><strong>{cat.name}</strong></p>
-              <p>{cat.badge || '-'}</p>
-              <p>{cat.description || '-'}</p>
+              <div><strong>{cat.name}</strong></div>
+              <div>{cat.badge || '-'}</div>
+              <div>{cat.description || '-'}</div>
               <div className="row-actions">
                 <button 
                   className="btn danger small" 
@@ -807,9 +808,9 @@ function AdminPanel({
           ))}
           {categories.length === 0 && (
             <div className="table-row">
-              <p  className="muted empty">
+              <div className="muted empty">
                 No categories yet. Add your first category.
-              </p>
+              </div>
             </div>
           )}
         </div>
@@ -887,22 +888,22 @@ function AdminPanel({
 
       <div className="table wide-table">
         <div className="table-head">
-          <p>Product</p>
-          <p>Category</p>
-          <p>Diamonds</p>
-          <p>Price</p>
-          <p>Actions</p>
+          <div>Product</div>
+          <div>Category</div>
+          <div>Diamonds</div>
+          <div>Price</div>
+          <div>Actions</div>
         </div>
         {sortedProducts.map((item) => (
           <div key={item.id} className="table-row">
-            <p>
+            <div>
               <strong>{item.name}</strong>
               {item.tag && <span className="tag tiny">{item.tag}</span>}
               {item.bonus && <span className="bonus tiny"> ({item.bonus})</span>}
-            </p>
-            <p>{categories.find(c => c.id === item.categoryId)?.name || '-'}</p>
-            <p>{item.diamonds || 'Special'}</p>
-            <p>৳{item.price}</p>
+            </div>
+            <div>{categories.find(c => c.id === item.categoryId)?.name || '-'}</div>
+            <div>{item.diamonds || 'Special'}</div>
+            <div>৳{item.price}</div>
             <div className="row-actions">
               <button 
                 className="btn danger small" 
@@ -915,9 +916,9 @@ function AdminPanel({
         ))}
         {sortedProducts.length === 0 && (
           <div className="table-row">
-            <p  className="muted empty">
+            <div className="muted empty">
               No products yet. Add your first product.
-            </p>
+            </div>
           </div>
         )}
       </div>

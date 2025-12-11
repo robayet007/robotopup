@@ -1,5 +1,6 @@
 // BkashVerification.tsx - Fixed Version
-import { FormEvent, useState } from 'react';
+import { useState } from 'react';
+import type { FormEvent } from 'react';
 
 type BkashVerificationProps = {
   onVerify: (businessId: string) => void;
