@@ -379,7 +379,7 @@ function useAdminSession() {
   })
 
   const login = (username: string, password: string) => {
-    if (username === 'admin' && password === '5566') {
+    if (username === 'admin' && password === '55660') {
       setAuthed(true)
       localStorage.setItem(SESSION_KEY, 'true')
       return true
@@ -424,12 +424,11 @@ function Hero() {
       <div>
         <p className="pill">Instant delivery</p>
         <h1>
-          Ekta fresh & clean Free Fire top-up hub
+             Free Fire top-up hub
           <span className="text-highlight"> — Robo Top Up</span>
         </h1>
         <p className="lead">
-          Diamond top-up in seconds with trusted local payment, safe admin panel, and
-          crystal clear pricing. Easy for players, simple for admins.
+          কয়েক সেকেন্ডেই নিরাপদ পেমেন্টে ডায়মন্ড টপ-আপ 💎—সহজ অ্যাডমিন প্যানেল, পরিষ্কার মূল্য, নিশ্চিন্ত অভিজ্ঞতা।
         </p>
         <div className="hero-actions">
           <a className="btn primary" href="#diamonds">
@@ -573,7 +572,7 @@ function AdminLogin({ onLogin }: { onLogin: (u: string, p: string) => boolean })
             required
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            placeholder="admin"
+            placeholder="username"
           />
         </label>
         <label>
@@ -583,7 +582,7 @@ function AdminLogin({ onLogin }: { onLogin: (u: string, p: string) => boolean })
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="5566"
+            placeholder="...."
           />
         </label>
         {error ? <p className="error">{error}</p> : null}
@@ -1026,7 +1025,7 @@ function Checkout({
           <p className="pill">Free Fire</p>
           <h2>{product.name}</h2>
           <p className="muted">
-            Complete your purchase. Enter your Free Fire UID then pay with bKash.
+            আপনার Free Fire UID দিন 🔢 এবং bKash দিয়ে সহজেই পেমেন্ট করুন 💸"
           </p>
         </div>
         <button className="btn ghost" onClick={() => navigate('/')}>
@@ -1036,7 +1035,7 @@ function Checkout({
 
       <div className="checkout-grid">
         <div className="card">
-          <p className="label">1) Account UID</p>
+          <p className="label">1)  UID</p>
           <input
             required
             value={uid}
