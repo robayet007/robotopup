@@ -969,8 +969,21 @@ function Checkout({
 
   const handleBkashVerify = async (businessId: string) => {
     try {
+      // Validate transaction ID format
+      const trimmedTrxId = businessId.trim().toUpperCase();
+      if (!trimmedTrxId.startsWith('C')) {
+        alert('Invalid bKash Transaction ID. bKash TrxID must start with "C"');
+        return;
+      }
+
+      const bKashTrxIdRegex = /^C[A-Z0-9]{9,11}$/;
+      if (!bKashTrxIdRegex.test(trimmedTrxId)) {
+        alert('Invalid bKash Transaction ID format. Must be 10-12 characters starting with C');
+        return;
+      }
+
       const response = await paymentApi.verify({
-        transactionId: businessId,
+        transactionId: trimmedTrxId,
         amount: product.price,
         playerId: uid,
         productId: product.id,
@@ -980,7 +993,7 @@ function Checkout({
       })
       
       if (response.success) {
-        alert('Payment verified successfully! Transaction ID: ' + businessId)
+        alert('Payment verified successfully! Transaction ID: ' + trimmedTrxId)
         setShowBkashVerification(false)
         navigate('/')
       } else {
@@ -1053,7 +1066,7 @@ function Checkout({
 
           <button
             className="btn primary full"
-            disabled={!uid}
+            disabled={!uid.trim()}  // Button disabled if UID is empty
             onClick={() => setShowBkashVerification(true)}
           >
             Pay with bKash
