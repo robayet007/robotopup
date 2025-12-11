@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import type { BackendProduct, BackendCategory } from '../services/api'; // type-only import
-import { productApi, categoryApi } from '../services/api'; // regular import
+import { productApi, categoryApi } from '../services/api'; // শুধু API functions import করুন
 
 // Local types
 export interface Category {
@@ -45,8 +44,8 @@ function useCatalog() {
       ]);
       
       if (productsRes.success && productsRes.data) {
-        const backendProducts = productsRes.data; // TypeScript auto inference
-        const convertedProducts: Product[] = backendProducts
+        // TypeScript automatically infers the type from ApiResponse
+        const convertedProducts: Product[] = productsRes.data
           .filter(p => p.isActive)
           .map(p => ({
             id: p.id,
@@ -69,8 +68,7 @@ function useCatalog() {
       }
       
       if (categoriesRes.success && categoriesRes.data) {
-        const backendCategories = categoriesRes.data; // TypeScript auto inference
-        const convertedCategories: Category[] = backendCategories
+        const convertedCategories: Category[] = categoriesRes.data
           .filter(c => c.isActive)
           .map(c => ({
             id: c.id,
@@ -129,7 +127,11 @@ function useCatalog() {
     } catch (err) {
       console.error('Failed to save category to backend:', err);
       // Fallback to local storage
-      setCategories(prev => [...prev, category as Category]);
+      const newCategory: Category = {
+        id: crypto.randomUUID(),
+        ...category
+      };
+      setCategories(prev => [...prev, newCategory]);
       saveToStorage();
       return { 
         success: false, 
@@ -188,7 +190,7 @@ function useCatalog() {
       // Get category name for backend
       const category = categories.find(c => c.id === product.categoryId);
       
-      // Save to backend - fix: type assertion or explicit typing
+      // Save to backend
       const productData = {
         id: newProduct.id,
         categoryId: newProduct.categoryId,
@@ -213,7 +215,11 @@ function useCatalog() {
     } catch (err) {
       console.error('Failed to save product to backend:', err);
       // Fallback to local storage
-      setProducts(prev => [...prev, product as Product]);
+      const newProduct: Product = {
+        id: crypto.randomUUID(),
+        ...product
+      };
+      setProducts(prev => [...prev, newProduct]);
       saveToStorage();
       return { 
         success: false, 
