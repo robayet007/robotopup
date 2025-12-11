@@ -1083,7 +1083,7 @@ function Checkout({
 function App() {
   const catalog = useCatalog()
   const { isAuthed, login, logout } = useAdminSession()
-  const navigate = useNavigate()
+  // const navigate = useNavigate()
 
   if (catalog.loading) {
     return (
