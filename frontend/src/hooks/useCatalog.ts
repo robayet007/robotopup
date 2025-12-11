@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { productApi, categoryApi, BackendProduct, BackendCategory } from '../services/api';
+import type { BackendProduct, BackendCategory } from '../services/api'; // type-only import
+import { productApi, categoryApi } from '../services/api'; // regular import
 
 // Local types
 export interface Category {
@@ -44,7 +45,7 @@ function useCatalog() {
       ]);
       
       if (productsRes.success && productsRes.data) {
-        const backendProducts: BackendProduct[] = productsRes.data;
+        const backendProducts = productsRes.data; // TypeScript auto inference
         const convertedProducts: Product[] = backendProducts
           .filter(p => p.isActive)
           .map(p => ({
@@ -68,7 +69,7 @@ function useCatalog() {
       }
       
       if (categoriesRes.success && categoriesRes.data) {
-        const backendCategories: BackendCategory[] = categoriesRes.data;
+        const backendCategories = categoriesRes.data; // TypeScript auto inference
         const convertedCategories: Category[] = backendCategories
           .filter(c => c.isActive)
           .map(c => ({
@@ -130,7 +131,10 @@ function useCatalog() {
       // Fallback to local storage
       setCategories(prev => [...prev, category as Category]);
       saveToStorage();
-      return { success: false, error: err instanceof Error ? err.message : 'Failed to create category' };
+      return { 
+        success: false, 
+        error: err instanceof Error ? err.message : 'Failed to create category' 
+      };
     }
   };
 
@@ -147,7 +151,10 @@ function useCatalog() {
       return { success: false, error: response.message };
     } catch (err) {
       console.error('Failed to update category:', err);
-      return { success: false, error: err instanceof Error ? err.message : 'Failed to update category' };
+      return { 
+        success: false, 
+        error: err instanceof Error ? err.message : 'Failed to update category' 
+      };
     }
   };
 
@@ -164,7 +171,10 @@ function useCatalog() {
       return { success: false, error: response.message };
     } catch (err) {
       console.error('Failed to delete category:', err);
-      return { success: false, error: err instanceof Error ? err.message : 'Failed to delete category' };
+      return { 
+        success: false, 
+        error: err instanceof Error ? err.message : 'Failed to delete category' 
+      };
     }
   };
 
@@ -178,8 +188,8 @@ function useCatalog() {
       // Get category name for backend
       const category = categories.find(c => c.id === product.categoryId);
       
-      // Save to backend
-      const response = await productApi.create({
+      // Save to backend - fix: type assertion or explicit typing
+      const productData = {
         id: newProduct.id,
         categoryId: newProduct.categoryId,
         name: newProduct.name,
@@ -189,7 +199,9 @@ function useCatalog() {
         tag: newProduct.tag || '',
         categoryName: category?.name || 'Unknown',
         isActive: true
-      });
+      };
+      
+      const response = await productApi.create(productData);
       
       if (response.success) {
         setProducts(prev => [...prev, newProduct]);
@@ -203,7 +215,10 @@ function useCatalog() {
       // Fallback to local storage
       setProducts(prev => [...prev, product as Product]);
       saveToStorage();
-      return { success: false, error: err instanceof Error ? err.message : 'Failed to create product' };
+      return { 
+        success: false, 
+        error: err instanceof Error ? err.message : 'Failed to create product' 
+      };
     }
   };
 
@@ -220,7 +235,10 @@ function useCatalog() {
       return { success: false, error: response.message };
     } catch (err) {
       console.error('Failed to update product:', err);
-      return { success: false, error: err instanceof Error ? err.message : 'Failed to update product' };
+      return { 
+        success: false, 
+        error: err instanceof Error ? err.message : 'Failed to update product' 
+      };
     }
   };
 
@@ -235,7 +253,10 @@ function useCatalog() {
       return { success: false, error: response.message };
     } catch (err) {
       console.error('Failed to delete product:', err);
-      return { success: false, error: err instanceof Error ? err.message : 'Failed to delete product' };
+      return { 
+        success: false, 
+        error: err instanceof Error ? err.message : 'Failed to delete product' 
+      };
     }
   };
 
