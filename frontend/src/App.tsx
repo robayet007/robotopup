@@ -6,8 +6,15 @@ import GameHero from './GameHero'
 import Niyom from './Niyom'
 
 // ==================== SMART API MANAGER ====================
+interface APIEndpoint {
+  url: string;
+  name: string;
+  priority: number;
+  type: string;
+}
+
 class SmartAPIManager {
-  static endpoints = [
+  static endpoints: APIEndpoint[] = [
     { 
       url: 'https://robo-backend-gguf.onrender.com/api', 
       name: 'Render', 
@@ -28,12 +35,12 @@ class SmartAPIManager {
     }
   ];
   
-  static currentEndpoint = this.endpoints[0];
-  static isInitialized = false;
-  static initializationPromise = null;
+  static currentEndpoint: APIEndpoint = this.endpoints[0];
+  static isInitialized: boolean = false;
+  static initializationPromise: Promise<string> | null = null;
   
   // Initialize API manager
-  static async initialize() {
+  static async initialize(): Promise<string> {
     if (this.isInitialized) {
       return this.currentEndpoint.url;
     }
@@ -42,7 +49,7 @@ class SmartAPIManager {
       return this.initializationPromise;
     }
     
-    this.initializationPromise = (async () => {
+    this.initializationPromise = (async (): Promise<string> => {
       console.log('🔍 Initializing API Manager...');
       
       // Sort by priority
@@ -80,7 +87,7 @@ class SmartAPIManager {
           
           console.log(`❌ ${endpoint.name} failed`);
         } catch (error) {
-          console.log(`⚠️ ${endpoint.name} test error:`, error.message);
+          console.log(`⚠️ ${endpoint.name} test error:`, error instanceof Error ? error.message : String(error));
         }
       }
       
@@ -95,7 +102,7 @@ class SmartAPIManager {
   }
   
   // Test endpoint health
-  static async testEndpoint(endpoint) {
+  static async testEndpoint(endpoint: APIEndpoint): Promise<boolean> {
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 3000);
@@ -123,13 +130,13 @@ class SmartAPIManager {
         return text.includes('"status":"OK"') || text.includes('"success":true');
       }
     } catch (error) {
-      console.log(`Endpoint ${endpoint.name} test failed:`, error.message);
+      console.log(`Endpoint ${endpoint.name} test failed:`, error instanceof Error ? error.message : String(error));
       return false;
     }
   }
   
   // Get current API base URL
-  static async getBaseURL() {
+  static async getBaseURL(): Promise<string> {
     if (!this.isInitialized) {
       return await this.initialize();
     }
@@ -137,7 +144,7 @@ class SmartAPIManager {
   }
   
   // Smart fetch with retry logic
-  static async smartFetch(path, options = {}) {
+  static async smartFetch(path: string, options: RequestInit = {}): Promise<Response> {
     const baseURL = await this.getBaseURL();
     
     try {
@@ -364,11 +371,11 @@ function useCatalog() {
       console.log('📦 Loading catalog data...');
       
       // Try multiple endpoints for categories
-      let categoriesRes;
+      let categoriesRes: ApiResponse<BackendCategory[]> | undefined;
       const categoryEndpoints = [
         () => categoryApi.getAll(),
         () => categoryApi.getCategories(),
-        async () => {
+        async (): Promise<ApiResponse<BackendCategory[]>> => {
           // Fallback: extract categories from products
           const productsRes = await productApi.getAll();
           if (productsRes.success && productsRes.data) {
@@ -452,7 +459,7 @@ function useCatalog() {
       
     } catch (err) {
       console.error('Failed to load from backend:', err)
-      setError(err.message || 'Backend connection failed. Using local backup.')
+      setError(err instanceof Error ? err.message : 'Backend connection failed. Using local backup.')
       
       // Try to load from localStorage
       const saved = localStorage.getItem(STORAGE_KEY)
