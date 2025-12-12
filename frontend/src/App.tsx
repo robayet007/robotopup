@@ -5,9 +5,179 @@ import BkashVerification from './BkashVerification'
 import GameHero from './GameHero'
 import Niyom from './Niyom'
 
-// ==================== API SERVICE ====================
-const API_BASE_URL = 'http://3.27.116.101:5000/api';  // ✅ Fixed: Direct port 5000
+// ==================== SMART API MANAGER ====================
+class SmartAPIManager {
+  static endpoints = [
+    { 
+      url: 'https://robo-backend-gguf.onrender.com/api', 
+      name: 'Render', 
+      priority: 1, 
+      type: 'https' 
+    },
+    { 
+      url: '/api', 
+      name: 'Vercel Proxy', 
+      priority: 2, 
+      type: 'proxy' 
+    },
+    { 
+      url: 'http://3.27.116.101:5000/api', 
+      name: 'EC2 Direct', 
+      priority: 3, 
+      type: 'http' 
+    }
+  ];
+  
+  static currentEndpoint = this.endpoints[0];
+  static isInitialized = false;
+  static initializationPromise = null;
+  
+  // Initialize API manager
+  static async initialize() {
+    if (this.isInitialized) {
+      return this.currentEndpoint.url;
+    }
+    
+    if (this.initializationPromise) {
+      return this.initializationPromise;
+    }
+    
+    this.initializationPromise = (async () => {
+      console.log('🔍 Initializing API Manager...');
+      
+      // Sort by priority
+      const sortedEndpoints = [...this.endpoints].sort((a, b) => a.priority - b.priority);
+      
+      // Filter out incompatible endpoints
+      const compatibleEndpoints = sortedEndpoints.filter(endpoint => {
+        // Skip HTTP endpoints on HTTPS sites
+        if (window.location.protocol === 'https:' && endpoint.type === 'http') {
+          console.log(`⏭️ Skipping ${endpoint.name} (HTTP not allowed on HTTPS site)`);
+          return false;
+        }
+        return true;
+      });
+      
+      if (compatibleEndpoints.length === 0) {
+        console.warn('⚠️ No compatible endpoints found, using first endpoint');
+        this.currentEndpoint = this.endpoints[0];
+        this.isInitialized = true;
+        return this.endpoints[0].url;
+      }
+      
+      // Test endpoints
+      for (const endpoint of compatibleEndpoints) {
+        try {
+          console.log(`Testing ${endpoint.name} (${endpoint.url})...`);
+          const isHealthy = await this.testEndpoint(endpoint);
+          
+          if (isHealthy) {
+            this.currentEndpoint = endpoint;
+            console.log(`✅ Selected: ${endpoint.name}`);
+            this.isInitialized = true;
+            return endpoint.url;
+          }
+          
+          console.log(`❌ ${endpoint.name} failed`);
+        } catch (error) {
+          console.log(`⚠️ ${endpoint.name} test error:`, error.message);
+        }
+      }
+      
+      // All endpoints failed, use first compatible
+      this.currentEndpoint = compatibleEndpoints[0];
+      console.warn(`⚠️ All endpoints failed, using fallback: ${compatibleEndpoints[0].name}`);
+      this.isInitialized = true;
+      return compatibleEndpoints[0].url;
+    })();
+    
+    return this.initializationPromise;
+  }
+  
+  // Test endpoint health
+  static async testEndpoint(endpoint) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3000);
+      
+      const response = await fetch(`${endpoint.url}/health`, {
+        signal: controller.signal,
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (!response.ok) {
+        return false;
+      }
+      
+      try {
+        const data = await response.json();
+        return data.status === 'OK' || data.success === true || data.message?.includes('running');
+      } catch {
+        // If not JSON, check if response text contains success indicators
+        const text = await response.text();
+        return text.includes('"status":"OK"') || text.includes('"success":true');
+      }
+    } catch (error) {
+      console.log(`Endpoint ${endpoint.name} test failed:`, error.message);
+      return false;
+    }
+  }
+  
+  // Get current API base URL
+  static async getBaseURL() {
+    if (!this.isInitialized) {
+      return await this.initialize();
+    }
+    return this.currentEndpoint.url;
+  }
+  
+  // Smart fetch with retry logic
+  static async smartFetch(path, options = {}) {
+    const baseURL = await this.getBaseURL();
+    
+    try {
+      const response = await fetch(`${baseURL}${path}`, {
+        ...options,
+        headers: {
+          'Content-Type': 'application/json',
+          ...options.headers
+        }
+      });
+      
+      // If request fails, try next endpoint (except for POST/PUT/DELETE to avoid duplicates)
+      if (!response.ok && 
+          this.currentEndpoint.priority < this.endpoints.length && 
+          (!options.method || options.method === 'GET')) {
+        
+        const currentIndex = this.endpoints.findIndex(e => e.url === baseURL);
+        if (currentIndex < this.endpoints.length - 1) {
+          console.warn(`Retrying with next endpoint (HTTP ${response.status})`);
+          this.currentEndpoint = this.endpoints[currentIndex + 1];
+          return this.smartFetch(path, options);
+        }
+      }
+      
+      return response;
+    } catch (error) {
+      console.error('Fetch error:', error);
+      throw error;
+    }
+  }
+}
 
+// Initialize API manager when module loads
+SmartAPIManager.initialize().then(url => {
+  console.log('🚀 API Manager initialized with:', url);
+}).catch(error => {
+  console.error('Failed to initialize API manager:', error);
+});
+
+// ==================== API SERVICE ====================
 export interface ApiResponse<T = any> {
   success: boolean;
   message?: string;
@@ -37,83 +207,84 @@ export interface BackendCategory {
   isActive: boolean;
 }
 
-// Products API - ALL using same BASE_URL
+// Products API with smart fetch
 export const productApi = {
   getAll: async (): Promise<ApiResponse<BackendProduct[]>> => {
-    const response = await fetch(`${API_BASE_URL}/products`);
+    const response = await SmartAPIManager.smartFetch('/products');
     return response.json();
   },
   
   getById: async (id: string): Promise<ApiResponse<BackendProduct>> => {
-    const response = await fetch(`${API_BASE_URL}/products/${id}`);
+    const response = await SmartAPIManager.smartFetch(`/products/${id}`);
     return response.json();
   },
   
   getByCategory: async (categoryId: string): Promise<ApiResponse<BackendProduct[]>> => {
-    const response = await fetch(`${API_BASE_URL}/products/category/${categoryId}`);
+    const response = await SmartAPIManager.smartFetch(`/products/category/${categoryId}`);
     return response.json();
   },
   
   create: async (productData: Omit<BackendProduct, '_id'>): Promise<ApiResponse<BackendProduct>> => {
-    const response = await fetch(`${API_BASE_URL}/products`, {
+    const response = await SmartAPIManager.smartFetch('/products', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(productData)
     });
     return response.json();
   },
   
   update: async (id: string, productData: Partial<BackendProduct>): Promise<ApiResponse<BackendProduct>> => {
-    const response = await fetch(`${API_BASE_URL}/products/${id}`, {
+    const response = await SmartAPIManager.smartFetch(`/products/${id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(productData)
     });
     return response.json();
   },
   
   delete: async (id: string): Promise<ApiResponse> => {
-    const response = await fetch(`${API_BASE_URL}/products/${id}`, {
+    const response = await SmartAPIManager.smartFetch(`/products/${id}`, {
       method: 'DELETE'
     });
     return response.json();
   }
 };
 
-// Categories API - ALL using same BASE_URL
+// Categories API with smart fetch
 export const categoryApi = {
   getAll: async (): Promise<ApiResponse<BackendCategory[]>> => {
-    const response = await fetch(`${API_BASE_URL}/products/categories/all`);
+    const response = await SmartAPIManager.smartFetch('/products/categories/all');
+    return response.json();
+  },
+  
+  getCategories: async (): Promise<ApiResponse<BackendCategory[]>> => {
+    const response = await SmartAPIManager.smartFetch('/products/categories');
     return response.json();
   },
   
   create: async (categoryData: Omit<BackendCategory, '_id'>): Promise<ApiResponse<BackendCategory>> => {
-    const response = await fetch(`${API_BASE_URL}/products/categories`, {
+    const response = await SmartAPIManager.smartFetch('/products/categories', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(categoryData)
     });
     return response.json();
   },
   
   update: async (id: string, categoryData: Partial<BackendCategory>): Promise<ApiResponse<BackendCategory>> => {
-    const response = await fetch(`${API_BASE_URL}/products/categories/${id}`, {
+    const response = await SmartAPIManager.smartFetch(`/products/categories/${id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(categoryData)
     });
     return response.json();
   },
   
   delete: async (id: string): Promise<ApiResponse> => {
-    const response = await fetch(`${API_BASE_URL}/products/categories/${id}`, {
+    const response = await SmartAPIManager.smartFetch(`/products/categories/${id}`, {
       method: 'DELETE'
     });
     return response.json();
   }
 };
 
-// Payments API
+// Payments API with smart fetch
 export const paymentApi = {
   verify: async (paymentData: {
     transactionId: string;
@@ -124,21 +295,20 @@ export const paymentApi = {
     diamonds?: number;
     price?: number;
   }): Promise<ApiResponse> => {
-    const response = await fetch(`${API_BASE_URL}/payments/verify`, {
+    const response = await SmartAPIManager.smartFetch('/payments/verify', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(paymentData)
     });
     return response.json();
   },
   
   getStatus: async (transactionId: string): Promise<ApiResponse> => {
-    const response = await fetch(`${API_BASE_URL}/payments/status/${transactionId}`);
+    const response = await SmartAPIManager.smartFetch(`/payments/status/${transactionId}`);
     return response.json();
   },
   
   getAll: async (limit: number = 50): Promise<ApiResponse> => {
-    const response = await fetch(`${API_BASE_URL}/payments?limit=${limit}`);
+    const response = await SmartAPIManager.smartFetch(`/payments?limit=${limit}`);
     return response.json();
   }
 };
@@ -146,7 +316,7 @@ export const paymentApi = {
 // Database seed (one-time use)
 export const seedApi = {
   seedDatabase: async (): Promise<ApiResponse> => {
-    const response = await fetch(`${API_BASE_URL}/products/seed`, {
+    const response = await SmartAPIManager.smartFetch('/products/seed', {
       method: 'POST'
     });
     return response.json();
@@ -174,26 +344,63 @@ type Product = {
 const STORAGE_KEY = 'rtu_catalog_backup'
 const SESSION_KEY = 'rtu_admin_session'
 
-// ==================== CATALOG HOOK ====================
+// ==================== ENHANCED CATALOG HOOK ====================
 function useCatalog() {
   const [categories, setCategories] = useState<Category[]>([])
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [retryCount, setRetryCount] = useState(0)
 
   useEffect(() => {
     loadFromBackend()
-  }, [])
+  }, [retryCount])
 
   const loadFromBackend = async () => {
     try {
       setLoading(true)
       setError(null)
       
-      const [productsRes, categoriesRes] = await Promise.all([
-        productApi.getAll(),
-        categoryApi.getAll()
-      ])
+      console.log('📦 Loading catalog data...');
+      
+      // Try multiple endpoints for categories
+      let categoriesRes;
+      const categoryEndpoints = [
+        () => categoryApi.getAll(),
+        () => categoryApi.getCategories(),
+        async () => {
+          // Fallback: extract categories from products
+          const productsRes = await productApi.getAll();
+          if (productsRes.success && productsRes.data) {
+            const uniqueCategories = [...new Set(productsRes.data.map(p => p.categoryId))];
+            return {
+              success: true,
+              data: uniqueCategories.map((catId, index) => ({
+                _id: `temp-${index}`,
+                id: catId,
+                name: `Category ${catId}`,
+                isActive: true
+              }))
+            };
+          }
+          throw new Error('Cannot extract categories');
+        }
+      ];
+      
+      for (const endpoint of categoryEndpoints) {
+        try {
+          categoriesRes = await endpoint();
+          if (categoriesRes.success && categoriesRes.data && categoriesRes.data.length > 0) {
+            console.log(`✅ Categories loaded from ${endpoint.name || 'endpoint'}`);
+            break;
+          }
+        } catch (err) {
+          console.log('Category endpoint failed, trying next...');
+        }
+      }
+      
+      // Load products
+      const productsRes = await productApi.getAll();
       
       if (productsRes.success && productsRes.data) {
         const backendProducts = productsRes.data
@@ -210,6 +417,7 @@ function useCatalog() {
           }))
         setProducts(convertedProducts)
         
+        // Save to localStorage
         localStorage.setItem(STORAGE_KEY, JSON.stringify({
           categories,
           products: convertedProducts
@@ -218,7 +426,8 @@ function useCatalog() {
         throw new Error(productsRes.message || 'Failed to load products')
       }
       
-      if (categoriesRes.success && categoriesRes.data) {
+      // Process categories
+      if (categoriesRes?.success && categoriesRes.data) {
         const backendCategories = categoriesRes.data
         const convertedCategories: Category[] = backendCategories
           .filter(c => c.isActive)
@@ -230,19 +439,32 @@ function useCatalog() {
           }))
         setCategories(convertedCategories)
       } else {
-        throw new Error(categoriesRes.message || 'Failed to load categories')
+        // Extract categories from products if API failed
+        const uniqueCategories = [...new Set(productsRes.data.map(p => p.categoryId))];
+        const extractedCategories: Category[] = uniqueCategories.map((catId, index) => ({
+          id: catId,
+          name: `Category ${index + 1}`,
+          description: `Products in ${catId}`
+        }));
+        setCategories(extractedCategories);
+        console.warn('Using extracted categories from products');
       }
       
     } catch (err) {
       console.error('Failed to load from backend:', err)
-      setError('Backend connection failed. Using local backup.')
+      setError(err.message || 'Backend connection failed. Using local backup.')
       
+      // Try to load from localStorage
       const saved = localStorage.getItem(STORAGE_KEY)
       if (saved) {
         try {
           const parsed = JSON.parse(saved) as { categories: Category[], products: Product[] }
-          if (parsed.categories) setCategories(parsed.categories)
-          if (parsed.products) setProducts(parsed.products)
+          if (parsed.categories && parsed.categories.length > 0) {
+            setCategories(parsed.categories)
+          }
+          if (parsed.products && parsed.products.length > 0) {
+            setProducts(parsed.products)
+          }
         } catch (parseErr) {
           console.error('Failed to parse localStorage data:', parseErr)
         }
@@ -361,6 +583,10 @@ function useCatalog() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ categories, products }))
   }
 
+  const retryLoad = () => {
+    setRetryCount(prev => prev + 1);
+  }
+
   return { 
     categories, 
     products, 
@@ -370,7 +596,8 @@ function useCatalog() {
     deleteCategory: deleteCategoryFromBackend,
     addProduct: addProductToBackend,
     deleteProduct: deleteProductFromBackend,
-    refresh: loadFromBackend
+    refresh: loadFromBackend,
+    retry: retryLoad
   }
 }
 
@@ -452,18 +679,20 @@ function ProductGrid({ categories, products }: { categories: Category[]; product
           <h2>{categoryName}</h2>
           <p className="muted">Choose a category, then pick your perfect pack.</p>
         </div>
-        <div className="category-tabs">
-          {categories.map((cat) => (
-            <button
-              key={cat.id}
-              className={`tab ${selectedCategory === cat.id ? 'active' : ''}`}
-              onClick={() => setSelectedCategory(cat.id)}
-            >
-              <span>{cat.name}</span>
-              {cat.badge ? <span className="tab-badge">{cat.badge}</span> : null}
-            </button>
-          ))}
-        </div>
+        {categories.length > 0 && (
+          <div className="category-tabs">
+            {categories.map((cat) => (
+              <button
+                key={cat.id}
+                className={`tab ${selectedCategory === cat.id ? 'active' : ''}`}
+                onClick={() => setSelectedCategory(cat.id)}
+              >
+                <span>{cat.name}</span>
+                {cat.badge ? <span className="tab-badge">{cat.badge}</span> : null}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
       <div className="product-grid">
         {filtered.map((item) => (
@@ -492,7 +721,12 @@ function ProductGrid({ categories, products }: { categories: Category[]; product
             </div>
           </article>
         ))}
-        {filtered.length === 0 ? <p className="muted empty">No products in this category.</p> : null}
+        {filtered.length === 0 ? (
+          <div className="empty-state">
+            <p className="muted">No products in this category.</p>
+            <p className="muted small">Try selecting a different category.</p>
+          </div>
+        ) : null}
       </div>
     </section>
   )
@@ -569,7 +803,8 @@ function AdminPanel({
     deleteCategory,
     addProduct,
     deleteProduct,
-    refresh 
+    refresh,
+    retry 
   } = useCatalog()
 
   const [catName, setCatName] = useState('')
@@ -691,7 +926,18 @@ function AdminPanel({
           <p className="pill">Dashboard</p>
           <h2>Manage categories & products</h2>
           <p className="muted">All data is saved to MongoDB database</p>
-          {error && <p className="error-text">{error}</p>}
+          {error && (
+            <div className="error-alert">
+              <p className="error-text">{error}</p>
+              <button 
+                className="btn small ghost" 
+                onClick={retry}
+                style={{ marginTop: '10px' }}
+              >
+                Retry Connection
+              </button>
+            </div>
+          )}
         </div>
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
           <button className="btn ghost" onClick={refresh}>
