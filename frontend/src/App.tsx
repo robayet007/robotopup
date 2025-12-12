@@ -6,7 +6,7 @@ import GameHero from './GameHero'
 import Niyom from './Niyom'
 
 // ==================== API SERVICE ====================
-const API_BASE_URL = 'http://3.27.116.101/api';
+const API_BASE_URL = 'http://3.27.116.101:5000/api';  // ✅ Fixed: Direct port 5000
 
 export interface ApiResponse<T = any> {
   success: boolean;
@@ -37,7 +37,7 @@ export interface BackendCategory {
   isActive: boolean;
 }
 
-// Products API
+// Products API - ALL using same BASE_URL
 export const productApi = {
   getAll: async (): Promise<ApiResponse<BackendProduct[]>> => {
     const response = await fetch(`${API_BASE_URL}/products`);
@@ -80,7 +80,7 @@ export const productApi = {
   }
 };
 
-// Categories API
+// Categories API - ALL using same BASE_URL
 export const categoryApi = {
   getAll: async (): Promise<ApiResponse<BackendCategory[]>> => {
     const response = await fetch(`${API_BASE_URL}/products/categories/all`);
@@ -422,28 +422,6 @@ function Navbar() {
 
 function Hero() {
   return (
-    // <section className="hero">
-    //   <div>
-    //     <p className="pill">Instant delivery</p>
-    //     <h1>
-    //          Free Fire top-up hub
-    //       <span className="text-highlight"> — Robo Top Up</span>
-    //     </h1>
-    //     <p className="lead">
-    //       কয়েক সেকেন্ডেই নিরাপদ পেমেন্টে ডায়মন্ড টপ-আপ 💎—সহজ অ্যাডমিন প্যানেল, পরিষ্কার মূল্য, নিশ্চিন্ত অভিজ্ঞতা।
-    //     </p>
-    //     <div className="hero-actions">
-    //       <a className="btn primary" href="#diamonds">
-    //         Buy Diamonds
-    //       </a>
-    //     </div>
-    //     <div className="badges">
-    //       <span>⚡ Instant code</span>
-    //       <span>🛡️ Secure payment</span>
-    //       <span>💬 Bangla support</span>
-    //     </div>
-    //   </div>
-    // </section>
     <GameHero/>
   )
 }
@@ -1018,7 +996,7 @@ function Checkout({
 
       <div className="checkout-grid">
         <div className="card">
-          <p className="label">1)  UID</p>
+          <p className="label">1) UID</p>
           <input
             required
             value={uid}
@@ -1079,7 +1057,6 @@ function Checkout({
 function App() {
   const catalog = useCatalog()
   const { isAuthed, login, logout } = useAdminSession()
-  // const navigate = useNavigate()
 
   if (catalog.loading) {
     return (

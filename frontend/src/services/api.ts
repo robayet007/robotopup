@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://3.27.116.101/api';
+const API_BASE_URL = 'https://robo-backend-gguf.onrender.com/api';
 
 export interface ApiResponse<T = any> {
   success: boolean;

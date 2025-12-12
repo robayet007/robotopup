@@ -1,13 +1,12 @@
 {
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" },
     { 
       "source": "/api/:path*", 
       "destination": "http://3.27.116.101:5000/api/:path*" 
     },
     { 
-      "source": "/sms-dashboard", 
-      "destination": "http://3.27.116.101:5000/sms-dashboard" 
+      "source": "/(.*)", 
+      "destination": "/index.html" 
     }
   ]
 }
