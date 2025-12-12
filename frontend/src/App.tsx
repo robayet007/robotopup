@@ -2,9 +2,11 @@ import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import BkashVerification from './BkashVerification'
+import GameHero from './GameHero'
+import Niyom from './Niyom'
 
 // ==================== API SERVICE ====================
-const API_BASE_URL = 'https://robo-backend-gguf.onrender.com/api';
+const API_BASE_URL = 'http://3.27.116.101/api';
 
 export interface ApiResponse<T = any> {
   success: boolean;
@@ -420,28 +422,29 @@ function Navbar() {
 
 function Hero() {
   return (
-    <section className="hero">
-      <div>
-        <p className="pill">Instant delivery</p>
-        <h1>
-             Free Fire top-up hub
-          <span className="text-highlight"> — Robo Top Up</span>
-        </h1>
-        <p className="lead">
-          কয়েক সেকেন্ডেই নিরাপদ পেমেন্টে ডায়মন্ড টপ-আপ 💎—সহজ অ্যাডমিন প্যানেল, পরিষ্কার মূল্য, নিশ্চিন্ত অভিজ্ঞতা।
-        </p>
-        <div className="hero-actions">
-          <a className="btn primary" href="#diamonds">
-            Buy Diamonds
-          </a>
-        </div>
-        <div className="badges">
-          <span>⚡ Instant code</span>
-          <span>🛡️ Secure payment</span>
-          <span>💬 Bangla support</span>
-        </div>
-      </div>
-    </section>
+    // <section className="hero">
+    //   <div>
+    //     <p className="pill">Instant delivery</p>
+    //     <h1>
+    //          Free Fire top-up hub
+    //       <span className="text-highlight"> — Robo Top Up</span>
+    //     </h1>
+    //     <p className="lead">
+    //       কয়েক সেকেন্ডেই নিরাপদ পেমেন্টে ডায়মন্ড টপ-আপ 💎—সহজ অ্যাডমিন প্যানেল, পরিষ্কার মূল্য, নিশ্চিন্ত অভিজ্ঞতা।
+    //     </p>
+    //     <div className="hero-actions">
+    //       <a className="btn primary" href="#diamonds">
+    //         Buy Diamonds
+    //       </a>
+    //     </div>
+    //     <div className="badges">
+    //       <span>⚡ Instant code</span>
+    //       <span>🛡️ Secure payment</span>
+    //       <span>💬 Bangla support</span>
+    //     </div>
+    //   </div>
+    // </section>
+    <GameHero/>
   )
 }
 
@@ -520,27 +523,7 @@ function ProductGrid({ categories, products }: { categories: Category[]; product
 function Steps() {
   return (
     <section className="section steps">
-      <div className="section-head">
-        <p className="pill">How it works</p>
-        <h2>3 easy steps</h2>
-      </div>
-      <div className="steps-grid">
-        <div>
-          <p className="step-num">01</p>
-          <h3>Select diamonds</h3>
-          <p className="muted">Pick the pack you want from Robo Top Up.</p>
-        </div>
-        <div>
-          <p className="step-num">02</p>
-          <h3>Give Player ID</h3>
-          <p className="muted">Share your Free Fire UID, choose payment.</p>
-        </div>
-        <div>
-          <p className="step-num">03</p>
-          <h3>Get instant top-up</h3>
-          <p className="muted">Within seconds diamonds appear in your account.</p>
-        </div>
-      </div>
+      <Niyom/>
     </section>
   )
 }
