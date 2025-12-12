@@ -22,47 +22,7 @@ const Niyom: React.FC = () => {
 
   return (
     <section className="section steps" style={styles.section}>
-      {/* Header Section */}
-      {/* <div style={styles.header}>
-        <h1 style={styles.headline}>
-          📱 আপনার SMS অটোমেটিক ডাটাবেজে সেভ করুন
-        </h1>
-        <p style={styles.subtitle}>
-          সহজ ৩টি স্টেপে সেটআপ করুন - কোনো কোডিং নলেজ ছাড়াই!
-        </p>
-      </div> */}
-
-      {/* Steps Section */}
-      {/* <div style={styles.stepsContainer}>
-        <div style={styles.stepCard}>
-          <div style={styles.stepNumber}>১</div>
-          <h3 style={styles.stepTitle}>Automate App ইনস্টল করুন</h3>
-          <p style={styles.stepDescription}>
-            Play Store থেকে "Automate" অ্যাপ ডাউনলোড করুন এবং SMS permission দিন
-          </p>
-          <div style={styles.stepIcon}>📱</div>
-        </div>
-
-        <div style={styles.stepCard}>
-          <div style={styles.stepNumber}>২</div>
-          <h3 style={styles.stepTitle}>Flow কনফিগার করুন</h3>
-          <p style={styles.stepDescription}>
-            SMS received → HTTP request সেট করুন। আপনার API URL যোগ করুন
-          </p>
-          <div style={styles.stepIcon}>⚙️</div>
-        </div>
-
-        <div style={styles.stepCard}>
-          <div style={styles.stepNumber}>৩</div>
-          <h3 style={styles.stepTitle}>টেস্ট করুন</h3>
-          <p style={styles.stepDescription}>
-            SMS পাঠান এবং ড্যাশবোর্ডে real-time ডাটা দেখুন
-          </p>
-          <div style={styles.stepIcon}>✅</div>
-        </div>
-      </div> */}
-
-      {/* YouTube Tutorial Section - ACTUAL VIDEO EMBED */}
+      {/* YouTube Tutorial Section - FIXED */}
       <div style={styles.tutorialSection}>
         <div style={styles.sectionHeader}>
           <FaYoutube style={{...styles.icon, color: '#FF0000'}} />
@@ -70,15 +30,16 @@ const Niyom: React.FC = () => {
         </div>
         
         <div style={styles.videoWrapper}>
-          {/* YouTube Video Embed */}
+          {/* YouTube Video Embed - CORRECTED URL */}
           <div style={styles.videoContainer}>
             <iframe
               width="100%"
               height="400"
-              src="https://www.youtube.com/embed/SjktGy7lEUw"
-              title="SMS Forwarder Tutorial"
+              src="https://www.youtube.com/embed/PKwrT7gIxjk"
+              title="কম দামে FREE FIRE DIAMOND TOP UP 🥶🔥🔥🔥"
               frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              referrerPolicy="strict-origin-when-cross-origin"
               allowFullScreen
               style={styles.videoFrame}
             ></iframe>
@@ -88,24 +49,24 @@ const Niyom: React.FC = () => {
             <div style={styles.videoMeta}>
               <FaPlayCircle style={styles.playIcon} />
               <div>
-                {/* <h3 style={styles.videoTitle}>SMS ফরওয়ার্ডার সম্পূর্ণ টিউটোরিয়াল</h3> */}
+                <h3 style={styles.videoTitle}>কম দামে FREE FIRE DIAMOND TOP UP</h3>
                 <p style={styles.videoDescription}>
-                  {/* Automate App থেকে শুরু করে API কানেকশন পর্যন্ত সবকিছু ডিটেইলে দেখানো হয়েছে */}
+                  Free Fire ডায়মন্ড খুব কম দামে টপ আপ করুন। সম্পূর্ণ টিউটোরিয়াল দেখুন।
                 </p>
               </div>
             </div>
             
             <div style={styles.videoStats}>
-              {/* <span style={styles.stat}>⏱️ 15:30 মিনিট</span>
-              <span style={styles.stat}>👁️ ২৫০+ Views</span>
-              <span style={styles.stat}>📅 ২৩ এপ্রিল ২০২৪</span> */}
+              <span style={styles.stat}>⏱️ টিউটোরিয়াল</span>
+              <span style={styles.stat}>👁️ নতুন ভিডিও</span>
+              <span style={styles.stat}>🔥 হট ডিল</span>
             </div>
           </div>
         </div>
         
         <div style={styles.youtubeActions}>
           <a 
-            href="https://www.youtube.com/watch?v=SjktGy7lEUw" 
+            href="https://www.youtube.com/watch?v=PKwrT7gIxjk" 
             target="_blank" 
             rel="noopener noreferrer"
             style={styles.youtubeButton}
@@ -115,7 +76,7 @@ const Niyom: React.FC = () => {
           </a>
           
           <a 
-            href="https://www.youtube.com/channel/UC_course" 
+            href="https://www.youtube.com/@username"
             target="_blank" 
             rel="noopener noreferrer"
             style={styles.subscribeButton}
@@ -136,7 +97,7 @@ const Niyom: React.FC = () => {
         <div style={styles.contactGrid}>
           {/* WhatsApp - GREEN */}
           <a 
-            href={`https://wa.me/8801766325020`} 
+            href="https://wa.me/8801766325020" 
             target="_blank" 
             rel="noopener noreferrer"
             style={{
@@ -282,69 +243,6 @@ const styles = {
     fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
     maxWidth: '1200px',
     margin: '0 auto',
-  },
-  header: {
-    textAlign: 'center' as const,
-    marginBottom: '50px',
-  },
-  headline: {
-    fontSize: '2.5rem',
-    color: '#2c3e50',
-    marginBottom: '15px',
-    fontWeight: '700',
-  },
-  subtitle: {
-    fontSize: '1.2rem',
-    color: '#7f8c8d',
-    maxWidth: '600px',
-    margin: '0 auto',
-  },
-  stepsContainer: {
-    display: 'flex',
-    flexWrap: 'wrap' as const,
-    justifyContent: 'center',
-    gap: '30px',
-    marginBottom: '60px',
-  },
-  stepCard: {
-    backgroundColor: 'white',
-    borderRadius: '12px',
-    padding: '30px',
-    boxShadow: '0 5px 15px rgba(0,0,0,0.1)',
-    flex: '1',
-    minWidth: '280px',
-    maxWidth: '350px',
-    textAlign: 'center' as const,
-    transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-    cursor: 'pointer',
-    position: 'relative' as const,
-  },
-  stepNumber: {
-    width: '50px',
-    height: '50px',
-    backgroundColor: '#3498db',
-    color: 'white',
-    borderRadius: '50%',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '1.5rem',
-    fontWeight: 'bold',
-    margin: '0 auto 20px',
-  },
-  stepTitle: {
-    fontSize: '1.4rem',
-    color: '#2c3e50',
-    marginBottom: '15px',
-  },
-  stepDescription: {
-    color: '#7f8c8d',
-    lineHeight: '1.6',
-    marginBottom: '15px',
-  },
-  stepIcon: {
-    fontSize: '2rem',
-    marginTop: '10px',
   },
   tutorialSection: {
     backgroundColor: 'white',
